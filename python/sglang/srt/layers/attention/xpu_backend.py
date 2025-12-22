@@ -376,12 +376,17 @@ class XPUAttentionBackend(AttentionBackend):
 
         # Convert the page table to a strided format which is needed by FA3 API
         if self.page_size > 1:
-            self.strided_indices = torch.arange(
-                0, metadata.page_table.shape[1], self.page_size, device=self.device
-            )
             metadata.page_table = (
-                metadata.page_table[:, self.strided_indices] // self.page_size
+                metadata.page_table[:, :: self.page_size] // self.page_size
             )
+            if (
+                hasattr(metadata, "local_attn_metadata")
+                and metadata.local_attn_metadata
+            ):
+                metadata.local_attn_metadata.local_block_table = (
+                    metadata.local_attn_metadata.local_block_table[:, :: self.page_size]
+                    // self.page_size
+                )
 
         self.forward_metadata = metadata
 
