@@ -64,7 +64,6 @@ elif _is_xpu:
 padding_size = 128 if bool(int(os.getenv("SGLANG_MOE_PADDING", "0"))) else 0
 
 
-
 def inplace_fused_experts(
     hidden_states: torch.Tensor,
     w1: torch.Tensor,
