@@ -263,6 +263,24 @@ class TopK(CustomOp):
             expert_location_dispatch_info=expert_location_dispatch_info,
         )
 
+    def forward_xpu(
+        self,
+        hidden_states: torch.Tensor,
+        router_logits: torch.Tensor,
+        *,
+        num_token_non_padded: Optional[torch.Tensor] = None,
+        expert_location_dispatch_info: Optional[ExpertLocationDispatchInfo] = None,
+    ) -> TopKOutput:
+        if self.topk_config.scoring_func == "sigmoid":
+            self.topk_config.torch_native = True
+        return select_experts(
+            hidden_states=hidden_states,
+            router_logits=router_logits,
+            topk_config=self.topk_config,
+            num_token_non_padded=num_token_non_padded,
+            expert_location_dispatch_info=expert_location_dispatch_info,
+        )
+
     def forward_cuda(
         self,
         hidden_states: torch.Tensor,
