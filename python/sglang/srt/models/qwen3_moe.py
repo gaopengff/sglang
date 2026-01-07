@@ -249,6 +249,7 @@ class Qwen3MoeSparseMoeBlock(nn.Module):
             quant_config=None,
             prefix=add_prefix("gate", prefix),
         )
+        self.num_experts = config.num_experts
 
         if get_moe_a2a_backend().is_deepep():
             # TODO: we will support tp < ep in the future
@@ -295,6 +296,13 @@ class Qwen3MoeSparseMoeBlock(nn.Module):
         # router_logits: (num_tokens, n_experts)
         router_logits, _ = self.gate(hidden_states)
         topk_output = self.topk(hidden_states, router_logits)
+
+        topk_ids = topk_output.topk_ids
+        cnts = topk_ids.new_zeros((topk_ids.shape[0], self.num_experts))
+        cnts.scatter_(1, topk_ids, 1)
+        tokens_per_expert = cnts.sum(dim=0)
+        print(f"{torch.sum(tokens_per_expert>0)} experts activated")
+
         final_hidden_states = self.experts(hidden_states, topk_output)
         if (
             self.tp_size > 1
