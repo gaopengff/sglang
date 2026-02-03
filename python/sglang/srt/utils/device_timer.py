@@ -5,6 +5,8 @@ from typing import Callable, Deque, Dict, Optional
 
 import torch
 
+_is_xpu = hasattr(torch, "xpu") and torch.xpu.is_available()
+
 
 class DeviceTimer:
     def __init__(self, reporter: Callable):
@@ -38,12 +40,18 @@ class _TimingInterval:
 
     @staticmethod
     def create():
-        start_event = torch.cuda.Event(enable_timing=True)
+        if _is_xpu:
+            start_event = torch.xpu.Event(enable_timing=True)
+        else:
+            start_event = torch.cuda.Event(enable_timing=True)
         start_event.record()
         return _TimingInterval(start_event=start_event)
 
     def end(self, metadata: Dict):
-        end_event = torch.cuda.Event(enable_timing=True)
+        if _is_xpu:
+            end_event = torch.xpu.Event(enable_timing=True)
+        else:
+            end_event = torch.cuda.Event(enable_timing=True)
         end_event.record()
 
         assert self.end_event is None

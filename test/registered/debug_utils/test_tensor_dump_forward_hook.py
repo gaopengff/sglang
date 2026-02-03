@@ -16,6 +16,9 @@ from sglang.srt.models.qwen2 import Qwen2MLP
 from sglang.srt.server_args import ServerArgs, set_global_server_args_for_scheduler
 from sglang.srt.utils import add_prefix
 from sglang.test.ci.ci_register import register_amd_ci, register_cuda_ci
+from sglang.srt.utils import is_xpu
+
+_is_xpu = is_xpu()
 
 register_cuda_ci(
     est_time=9,
@@ -77,8 +80,9 @@ def init_weights(module):
 
 def test_model_forward_dump(tmp_path):
     set_global_server_args_for_scheduler(ServerArgs(model_path="dummy"))
+    device = "xpu" if _is_xpu else "cuda"
     init_distributed_environment(
-        backend="nccl",
+        backend="xccl" if _is_xpu else "nccl",
         world_size=1,
         rank=0,
         local_rank=0,
@@ -87,14 +91,14 @@ def test_model_forward_dump(tmp_path):
     initialize_model_parallel()
     model = MockCausalLM()
     model.apply(init_weights)
-    model = model.cuda().bfloat16()
+    model = model.to(device).bfloat16()
     dumper = register_forward_hook_for_model(
         model, tmp_path / "sglang_dump", [0], 0, 0, 0
     )
 
     dir_path = dumper.get_dump_dir()
     inp = torch.randn(4, TEST_HIDDEN_SIZE, dtype=torch.bfloat16) * 0.01
-    result = model(inp.cuda())
+    result = model(inp.to(device))
     data = torch.load(f"{dir_path}/Pass00000.pt")
     assert "model.layernorm" in data
     assert "model.mlp.down_proj" in data

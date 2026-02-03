@@ -58,6 +58,7 @@ from sglang.srt.utils import (
     is_cuda,
     is_hip,
     is_npu,
+    is_xpu,
     next_power_of_2,
 )
 from sglang.srt.utils.custom_op import register_custom_op
@@ -78,6 +79,7 @@ _is_npu = is_npu()
 _is_cpu = is_cpu()
 _cpu_has_amx_support = cpu_has_amx_support()
 _is_hip = is_hip()
+_is_xpu = is_xpu()
 
 
 def get_tensor_size_bytes(t: Union[torch.Tensor, List[torch.Tensor]]):
@@ -262,6 +264,7 @@ class MambaPool:
                 device=device,
             )
             if speculative_num_draft_tokens is not None:
+                device = "xpu" if _is_xpu else "cuda"
                 # Cache intermediate SSM states per draft token during target verify
                 # Shape: [num_layers, size + 1, speculative_num_draft_tokens, HV, K, V]
                 intermediate_ssm_state_cache = torch.zeros(
@@ -274,7 +277,7 @@ class MambaPool:
                         temporal_state_shape[2],
                     ),
                     dtype=ssm_dtype,
-                    device="cuda",
+                    device=device,
                 )
                 # Cache intermediate conv windows (last K-1 inputs) per draft token during target verify
                 # Shape: [num_layers, size + 1, speculative_num_draft_tokens, dim, K-1]
@@ -288,7 +291,7 @@ class MambaPool:
                             conv_shape[1],
                         ),
                         dtype=conv_dtype,
-                        device="cuda",
+                        device=device,
                     )
                     for conv_shape in conv_state_shape
                 ]

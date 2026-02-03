@@ -11,7 +11,9 @@ import torch
 
 from sglang.srt.debug_utils.dump_loader import find_row, read_meta
 from sglang.srt.debug_utils.dumper import get_truncated_value
+from sglang.srt.utils import is_xpu
 
+_is_xpu = is_xpu()
 
 def main(args):
     df_target = read_meta(args.target_path)
@@ -283,7 +285,7 @@ def _load_object(path):
     if not isinstance(x, torch.Tensor):
         print(f"Skip load {path} since {type(x)=} is not a Tensor ({x=})")
         return None
-    return x.cuda()
+    return x.xpu() if _is_xpu else x.cuda()
 
 
 # TODO may make customization endpoints configurable via args pointing to code file
