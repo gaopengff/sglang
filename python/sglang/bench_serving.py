@@ -1216,8 +1216,6 @@ async def benchmark(
     if ("sglang" in backend and _get_bool_env_var("SGLANG_IS_IN_CI")) or flush_cache:
         requests.post(base_url + "/flush_cache", headers=get_auth_headers())
 
-    time.sleep(1.0)
-
     # Build profile URLs for PD separated mode (do this once at the beginning)
     pd_profile_urls = []
     if profile and pd_separated:
