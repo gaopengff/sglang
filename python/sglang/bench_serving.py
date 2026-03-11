@@ -1210,7 +1210,9 @@ async def benchmark(
     warmup_tasks = []
     for _ in range(warmup_requests):
         warmup_tasks.append(
-            asyncio.create_task(limited_request_func(request_func_input=test_input, pbar=warmup_pbar))
+            asyncio.create_task(
+                limited_request_func(request_func_input=test_input, pbar=warmup_pbar)
+            )
         )
 
     warmup_outputs = await asyncio.gather(*warmup_tasks)
