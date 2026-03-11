@@ -1207,6 +1207,10 @@ async def benchmark(
         )
 
     warmup_outputs = await asyncio.gather(*warmup_tasks)
+
+    if warmup_pbar is not None:
+        warmup_pbar.close()
+
     if is_multi_turn:
         warmup_outputs = [x for output in warmup_outputs for x in output]
 
