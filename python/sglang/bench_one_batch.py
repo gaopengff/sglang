@@ -290,7 +290,7 @@ def prepare_inputs_for_correctness_test(bench_args, tokenizer, custom_prompts):
         custom_input_len = len(custom_prompts)
         bs = bench_args.batch_size[0]
         if custom_input_len > bs:
-            print(
+            logging.warning(
                 f"Custom input size ({custom_input_len}) is larger than batch_size ({bs}). "
                 f"Using the first {bs} prompts."
             )
@@ -386,7 +386,7 @@ class TreeCacheNamespace(SimpleNamespace):
     def is_tree_cache(self) -> bool:
         return not self.is_chunk_cache()
 
-    def evict(self, num_tokens: int):
+    def evict(self, params: "EvictParams"):
         pass
 
 
