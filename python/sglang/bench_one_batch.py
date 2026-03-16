@@ -71,6 +71,7 @@ from sglang.srt.layers.quantization.fp4_utils import initialize_fp4_gemm_config
 from sglang.srt.layers.quantization.fp8_utils import initialize_fp8_gemm_config
 from sglang.srt.managers.schedule_batch import Req, ScheduleBatch
 from sglang.srt.managers.scheduler_dp_attn_mixin import prepare_mlp_sync_batch_raw
+from sglang.srt.mem_cache.base_prefix_cache import EvictParams
 from sglang.srt.model_executor.forward_batch_info import ForwardBatch
 from sglang.srt.model_executor.model_runner import ModelRunner
 from sglang.srt.sampling.sampling_params import SamplingParams
@@ -386,7 +387,7 @@ class TreeCacheNamespace(SimpleNamespace):
     def is_tree_cache(self) -> bool:
         return not self.is_chunk_cache()
 
-    def evict(self, params: "EvictParams"):
+    def evict(self, params: EvictParams):
         pass
 
 
