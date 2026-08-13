@@ -584,6 +584,9 @@ class XPUAttentionBackend(AttentionBackend):
 
             if self.fa_skip_kv_cache:
                 assert k is not None, "fa_skip_kv_cache requires k to be provided"
+                assert (
+                    not layer.is_cross_attention
+                ), "fa_skip_kv_cache is only valid for self-attention (not cross-attention)"
                 if metadata.fa_skip_cu_seqlens_q is None:
                     num_real_tokens = forward_batch.extend_num_tokens
                     num_padded_tokens = q.shape[0]
